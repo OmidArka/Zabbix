@@ -17,32 +17,92 @@ A non-root sudo user or access to the root user. We recommend acting as a non-ro
 Install Zabbix on Debian 12 Bookworm
 Step 1. Before we install any software, it’s important to make sure your system is up to date by running the following apt commands in the terminal:
 
-sudo apt update
-sudo apt install build-essential libjpeg-dev libpng-dev libtiff-dev
+1-sudo apt update
+2-sudo apt install build-essential libjpeg-dev libpng-dev libtiff-dev
 This command will refresh the repository, allowing you to install the latest versions of software packages.
 
 Step 2. Installing Zabbix on Debian 12.
 
 To access the latest Zabbix packages, we need to add the official repository. Run these commands:
 
-wget https://repo.zabbix.com/zabbix/6.5/debian/pool/main/z/zabbix-release/zabbix-release_6.5-1+debian12_all.deb
-sudo dpkg -i zabbix-release_6.5-1+debian12_all.deb
-sudo apt update
+3-wget https://repo.zabbix.com/zabbix/6.5/debian/pool/main/z/zabbix-release/zabbix-release_6.5-1+debian12_all.deb
+4-sudo dpkg -i zabbix-release_6.5-1+debian12_all.deb
+5-sudo apt update
 Now it’s time to install the Zabbix server on your Debian 12 system:
 
+Install PostgreSQL
+To set up a new PostgreSQL database server on Ubuntu 22.04 LTS, then use these commands.
 
+
+****sudo apt update
+****sudo apt install postgresql postgresql-contrib
+*****sudo service postgresql start
+Check the status.
+sudo service postgresql status
 sudo apt install zabbix-server-pgsql zabbix-frontend-php zabbix-apache-conf zabbix-agent
 Step 3. Configuring Zabbix Server.
 
 Next, let’s configure the Zabbix server to ensure smooth operation. Create a PostgreSQL database and user for Zabbix:
 
-sudo su - postgres
-createuser --pwprompt zabbix
-createdb -O zabbix zabbix
+6-sudo su - postgres
+7-createuser --pwprompt zabbix
+8-createdb -O zabbix zabbix
+
+*** psql
+Add the user.
+
+
+CREATE USER zbx_monitor WITH PASSWORD '<PASSWORD>' INHERIT;
+GRANT pg_monitor TO zbx_monitor;
+Confirm user exists
+
+
+select * from pg_catalog.pg_user;
+Exit back to the bash prompt.
+
+
+\q
+***mkdir /var/lib/zabbix
 exit
+
+9-vim.tiny /etc/postgresql/15/main/pg_hba.conf
+*************
+
+# DO NOT DISABLE!
+# If you change this first entry you will need to make sure that the
+# database superuser can access the database using some other method.
+# Noninteractive access to all databases is required during automatic
+# maintenance (custom daily cronjobs, replication, and similar tasks).
+#
+# Database administrative login by Unix domain socket
+#local   all             postgres                                peer
+local   all             postgres                                peer
+
+# TYPE  DATABASE        USER            ADDRESS                 METHOD
+
+# "local" is for Unix domain socket connections only
+local   all             all                                    **** trust
+# IPv4 local connections:
+host    all             all             127.0.0.1/32            scram-sha-256
+# IPv6 local connections:
+host    all             all             ::1/128                 scram-sha-256
+# Allow replication connections from localhost, by a user with the
+# replication privilege.
+local   replication     all                                     peer
+host    replication     all             127.0.0.1/32            scram-sha-256
+host    replication     all             ::1/128                 scram-sha-256
+
+**************
+
+
+
+9-zcat /usr/share/zabbix-sql-scripts/postgresql/server.sql.gz | psql -U zabbix -d zabbix -W
+Edit file /etc/zabbix/zabbix_server.conf
+اضافه بشه
+9- DBPassword=password
 Edit the Zabbix PHP configuration file:
 
-sudo nano /etc/zabbix/apache.conf
+9- sudo vim.tiny /etc/zabbix/apache.conf
 Uncomment and modify the following lines:
 
 php_value date.timezone America/New_York
@@ -50,7 +110,7 @@ Save the file and exit the editor.
 
 Next, Edit the PHP configuration file:
 
-sudo nano /etc/zabbix/php-fpm.conf
+10- sudo vim.tiny /etc/zabbix/php-fpm.conf
 Change the following values:
 
 php_value[date.timezone] = America/New_York
@@ -58,15 +118,19 @@ Step 4. Installing Zabbix Agent.
 
 The Zabbix agent is responsible for collecting data from the monitored host and sending it to the Zabbix server. Let’s proceed with the installation and configuration.
 
-sudo apt install zabbix-agent
+
 Now, let’s configure the Zabbix agent to communicate with the server:
 
 Zabbix Server Connection
-sudo nano /etc/zabbix/zabbix_agentd.conf
+11-sudo nano /etc/zabbix/zabbix_agentd.conf
 Set the Zabbix server IP or hostname:
 
-Server=ZABBIX_SERVER_IP_OR_HOSTNAME
+*Server=zabbix
+*ServerActive=zabbix
+*Hostname= postgres
 Save the file and exit the editor.
+
+12- systemctl status zabbix-server zabbix-agent postgresql apache2
 
 Host Configuration
 On the Zabbix server, add the monitored host by following these steps:
@@ -74,6 +138,9 @@ On the Zabbix server, add the monitored host by following these steps:
 Log in to the Zabbix web interface (http://your-server-ip/zabbix).
 Navigate to “Configuration” > “Hosts” > “Create host.”
 Enter the necessary details, such as hostname, IP address, and select the group.
-
+user & Pass Default : 
+admin
+zabbix
 
 Congratulations! You have successfully installed Zabbix. Thanks for using this tutorial for installing the latest version of Zabbix on Debian 12 Bookworm. For additional help or useful information, we recommend you check the official Zabbix website.
+https://sbcode.net/zabbix/postgresql-template/
