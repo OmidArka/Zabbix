@@ -10,7 +10,8 @@ apache2.service - The Apache HTTP Server
 
 sudo journalctl -xe
 systemctl status apache2
-sudo tail -f /var/log/apache2/error.log
+tail -f /var/log/apache2/error.log
+journalctl -xe -u apache2
 __________________________________
 1:
 
