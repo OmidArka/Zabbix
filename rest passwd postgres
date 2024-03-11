@@ -1,0 +1,9 @@
+How to rest Password Postgres
+
+go to >
+vim /etc/postgres/15/main/pg_hba.conf
+
+
+
+
+vim /etc/zabbix/web/zabbix.conf.php
