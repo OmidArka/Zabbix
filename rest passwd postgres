@@ -1,9 +1,41 @@
 How to rest Password Postgres
 
 go to >
-vim /etc/postgres/15/main/pg_hba.conf
+1-vim /etc/postgres/15/main/pg_hba.conf
+
+2-edit 
+
+# DO NOT DISABLE!
+# If you change this first entry you will need to make sure that the
+# database superuser can access the database using some other method.
+# Noninteractive access to all databases is required during automatic
+# maintenance (custom daily cronjobs, replication, and similar tasks).
+#
+# Database administrative login by Unix domain socket
+local   all             postgres                                **** trust
+
+# TYPE  DATABASE        USER            ADDRESS                 METHOD
+
+# "local" is for Unix domain socket connections only
+local   all             all                                    **** trust
+# IPv4 local connections:
+host    all             all             127.0.0.1/32            **** trust
+# IPv6 local connections:
+host    all             all             ::1/128                 scram-sha-256
+# Allow replication connections from localhost, by a user with the
+# replication privilege.
+local   replication     all                                    **** trust
+host    replication     all             127.0.0.1/32            scram-sha-256
+host    replication     all             ::1/128                 scram-sha-256
+
+save and exit
+
+3-su - postgres
+
+4-psql
+
+5-\password postgres
 
 
-
-
+agar nashod aval postgres ro stop kon bad anjam bedeh
 vim /etc/zabbix/web/zabbix.conf.php
