@@ -1,0 +1,13 @@
+one :
+
+tail -f/var/log/zabbix/zabbix_server.log
+
+agar marboot be error database bood
+
+su - postgres
+psql 
+
+\password (user)zabbix
+new password 
+
+vim.tiny /etc/postgresql/15/main/pg_hb.conf
