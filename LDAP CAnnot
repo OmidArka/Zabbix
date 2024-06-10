@@ -1,2 +1,5 @@
 select authentication_type from config;
 update config set authentication_type=0;
+
+تست 
+ldapsearch -x -H ldap://ldap-server-address -D "cn=admin,dc=example,dc=com" -W
