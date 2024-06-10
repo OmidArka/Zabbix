@@ -3,3 +3,6 @@ update config set authentication_type=0;
 
 تست 
 ldapsearch -x -H ldap://ldap-server-address -D "cn=admin,dc=example,dc=com" -W
+
+بررسی یوزر 
+SELECT * FROM users WHERE alias = 'your_username';
