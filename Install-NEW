@@ -1,0 +1,64 @@
+ نصب Zabbix 7.0 روی Debian 12 با PostgreSQL و Apache2
+این راهنما شامل نصب Zabbix Server, Frontend, Agent، پایگاه داده PostgreSQL و وب‌سرور Apache2 می‌باشد.
+آخرین نسخه پایدار Zabbix LTS: 7.0
+سیستم‌عامل هدف: Debian 12 Bookworm
+apt Update
+apt Upgrade
+apt install nano vim wget curl net-tools network-manager resolvconf
+
+sudo apt install -y wget curl gnupg2 lsb-release software-properties-common
+sudo apt install build-essential libjpeg-dev libpng-dev libtiff-dev
+apt update && upgrade
+
+wget https://repo.zabbix.com/zabbix/7.0/debian/pool/main/z/zabbix-release/zabbix-release_latest_7.0+debian12_all.deb
+apt install ./zabbix-release_latest_7.0+debian12_all.deb
+apt update && upgrade
+apt install zabbix-server-pgsql zabbix-frontend-php php8.2-pgsql zabbix-apache-conf zabbix-sql-scripts zabbix-agent
+apt update && upgrade
+apt install -y postgresql postgresql-contrib
+systemctl start postgresql
+su - postgres
+createuser --pwprompt zabbix
+createdb -O zabbix zabbix
+
+vim.tiny /etc/postgresql/15/main/pg_hba.conf
+
+# DO NOT DISABLE!
+# If you change this first entry you will need to make sure that the
+# database superuser can access the database using some other method.
+# Noninteractive access to all databases is required during automatic
+# maintenance (custom daily cronjobs, replication, and similar tasks).
+#
+# Database administrative login by Unix domain socket
+local   all             postgres                                peer
+
+# TYPE  DATABASE        USER            ADDRESS                 METHOD
+
+# "local" is for Unix domain socket connections only
+local   all             all                                    **** trust
+# IPv4 local connections:
+host    all             all             127.0.0.1/32            scram-sha-256
+# IPv6 local connections:
+host    all             all             ::1/128                 scram-sha-256
+# Allow replication connections from localhost, by a user with the
+# replication privilege.
+local   replication     all                                     peer
+host    replication     all             127.0.0.1/32            scram-sha-256
+host    replication     all             ::1/128                 scram-sha-256
+
+
+zcat /usr/share/zabbix-sql-scripts/postgresql/server.sql.gz | psql -U zabbix -d zabbix -W
+
+sudo nano /etc/zabbix/zabbix_server.conf
+DBName=zabbix
+DBUser=zabbix
+DBPassword=MyZabbixDBpass
+
+nano /etc/zabbix/zabbix_agentd.conf
+*Server=zabbix
+*ServerActive=zabbix
+*Hostname= postgres
+
+systemctl restart zabbix-server zabbix-agent postgresql apache2
+
+
