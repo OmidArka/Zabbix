@@ -32,15 +32,13 @@ sudo -u postgres createdb -O zabbix zabbix
 # ویرایش فایل pg_hba.conf برای مجاز کردن دسترسی
 sudo nano /etc/postgresql/15/main/pg_hba.conf
 
-# ریستارت PostgreSQL
-sudo systemctl restart postgresql
+
+local   all             all                                     trust
+host    all             all             127.0.0.1/32            scram-sha-256
+host    all             all             ::1/128                 scram-sha-256
+
 
 # ایمپورت اسکیمای اولیه Zabbix در دیتابیس
-zcat /usr/share/zabbix-sql-scripts/postgresql/server.sql.gz | psql -U zabbix -d zabbix -W
-
-# پیکربندی Zabbix Server
-sudo nano /etc/zabbix/zabbix_server.conf
-
 # ریستارت PostgreSQL
 sudo systemctl restart postgresql
 
